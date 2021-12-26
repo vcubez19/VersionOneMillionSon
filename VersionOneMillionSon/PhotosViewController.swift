@@ -32,6 +32,7 @@ final class PhotosViewController: UIViewController {
     }()
     
     
+    
     let customLabel = UILabel()
     let spImage = UIImage.init(systemName: "exclamationmark.icloud")!.withTintColor(.systemOrange, renderingMode: .alwaysOriginal)
     let flexibleSpace = UIBarButtonItem(systemItem: .flexibleSpace)
@@ -53,7 +54,8 @@ final class PhotosViewController: UIViewController {
         super.viewDidLoad()
         
         
-        self.getImages(images: &self.images)
+        self.getImages(images: &self.images
+        )
         
         
         self.view.backgroundColor = .systemBackground
@@ -61,13 +63,12 @@ final class PhotosViewController: UIViewController {
         
         self.view.addSubview(self.collection)
         
-            
         
         self.collection.delegate = self
         self.collection.dataSource = self
         
         
-        let next = UIBarButtonItem(title: "Next", style: .plain, target: self, action: #selector(method))
+        let next = UIBarButtonItem(title: "Next", style: .done, target: self, action: #selector(self.nextView))
         self.navigationItem.rightBarButtonItem = next
         
         
@@ -102,12 +103,48 @@ final class PhotosViewController: UIViewController {
         ]
         NSLayoutConstraint.activate(constraints)
         
+        
+        
 
         
     }
     
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(true)
+        self.refreshFM()
+        var count = 0
+        for i in self.images {
+            count += 1
+            self.saveImage(image: i, name: "\(count)")
+        }
+    }
+    
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(true)
+    }
+    
+    
     // MARK: Methods
+    
+
+    
+    @objc func nextView() {
+        if self.images.count != 0 {
+//            self.refreshFM()
+//            var count = 0
+//            for i in self.images {
+//                count += 1
+//                self.saveImage(image: i, name: "\(count)")
+//            }
+            let next = DescriptionViewController()
+            self.navigationController?.pushViewController(next, animated: true)
+        } else {
+            print("Please add at least 1 image")
+        }
+        
+    }
     
     
     @objc func addPhotos() {
@@ -140,6 +177,7 @@ final class PhotosViewController: UIViewController {
             self.trash.isEnabled = false
             self.trash.tintColor = .systemBackground
             self.collection.reloadData()
+
             
         }
         
@@ -231,7 +269,6 @@ extension PhotosViewController: PHPickerViewControllerDelegate {
         var max = false
         
         
-        var count = 0
         results.forEach { result in
             group.enter()
             result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] reading, error in
@@ -245,10 +282,8 @@ extension PhotosViewController: PHPickerViewControllerDelegate {
                 }
                 
                 
-                count += 1
                 if( self?.images.count)! < 12 {
-                    //self?.images.append(image)
-                    self?.saveImage(image: image, withName: "image-\(count).jpg", time: Date())
+                    self?.images.append(image)
                 } else {
                     max = true
                 }
@@ -268,7 +303,7 @@ extension PhotosViewController: PHPickerViewControllerDelegate {
             }
             
             self.collection.reloadData()
-            
+
             
         }
 
@@ -427,8 +462,10 @@ extension PhotosViewController: UICollectionViewDelegate, UICollectionViewDataSo
             
             
 
+        
     }
 
 
 }
+
 

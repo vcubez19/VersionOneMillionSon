@@ -46,10 +46,18 @@ class ViewController: UIViewController, UITextFieldDelegate {
         button.layer.masksToBounds = true
         return button
     }()
+    
+    
+    private let navBar: UINavigationBar = {
+        let bar = UINavigationBar()
+        bar.barTintColor = .yellow
+        return bar
+    }()
 
         
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.view.backgroundColor = .systemBackground
         self.title = "New post"
         self.navigationController?.navigationBar.shadowImage = UIImage()
         self.navigationController?.navigationBar.barTintColor = .systemBackground
@@ -58,6 +66,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         self.view.addSubview(self.nextButton)
         self.nextButton.addTarget(self, action: #selector(self.nextView), for: .touchUpInside)
         self.textField.delegate = self
+        self.textField.text = UserDefaults.standard.string(forKey: "TempTitle")
         
         
         let contraints: [ NSLayoutConstraint ] = [
@@ -77,9 +86,12 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         
     }
+
+
     
     
     @objc func nextView() {
+        UserDefaults.standard.setValue(self.textField.text!, forKey: "TempTitle")
         let dest = PhotosViewController()
         self.navigationController?.pushViewController(dest, animated: true)
     }

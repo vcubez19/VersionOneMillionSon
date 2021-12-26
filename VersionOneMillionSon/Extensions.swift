@@ -12,23 +12,69 @@ import UIKit
 extension UIViewController {
     
     
-    func saveImage(image: UIImage, withName name: String, time: Date) {
+        
+    func saveImage(image: UIImage, name: String){
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let fileName = "image-\(name).jpg"
+            let fileURL = documentsDirectory.appendingPathComponent("\(fileName)")
+            if let data = image.jpegData(compressionQuality:  1.0),
+              !FileManager.default.fileExists(atPath: fileURL.path) {
+                do {
+                    try data.write(to: fileURL)
+                } catch {
+                    fatalError()
+                }
+
+
+            }
 
         
-        var date = Date()
-        date = time
-        let imageData = NSData(data: image.jpegData(compressionQuality: 0.7)!)
-       let paths = NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.documentDirectory,  FileManager.SearchPathDomainMask.userDomainMask, true)
-       let docs = paths[0] as NSString
-        print(docs)
-       let name = name + NSUUID().uuidString + ".jpg"
-       let fullPath = docs.appendingPathComponent(name)
-       _ = imageData.write(toFile: fullPath, atomically: true)
         
-        
-   }
+    }
     
     
+    
+    
+    
+    func getImages(images: inout [ UIImage ]) {
+        
+        
+        let fileManager = FileManager.default
+        let documentDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        print(documentDirectory.path)
+        let directoryContents = try! fileManager.contentsOfDirectory(at: documentDirectory, includingPropertiesForKeys: nil)
+        for imageURL in directoryContents where imageURL.pathExtension == "jpg" {
+            if let image = UIImage(contentsOfFile: imageURL.path) {
+                images.append(image)
+            } else {
+               fatalError()
+            }
+        }
+        
+        
+    }
+    
+    
+    func refreshFM() {
+        let documentsUrl =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        
+        do {
+            let fileURLs = try FileManager.default.contentsOfDirectory(at: documentsUrl,
+                                                                       includingPropertiesForKeys: nil,
+                                                                       options: .skipsHiddenFiles)
+            for fileURL in fileURLs {
+                if fileURL.pathExtension == "jpg" {
+                    try FileManager.default.removeItem(at: fileURL)
+                }
+            }
+        } catch  { print(error) }
+    }
+    
+    
+}
+
+
+extension UITableViewCell {
     func getImages(images: inout [ UIImage ]) {
         
         
@@ -38,18 +84,70 @@ extension UIViewController {
         for imageURL in directoryContents where imageURL.pathExtension == "jpg" {
             if let image = UIImage(contentsOfFile: imageURL.path) {
                 images.append(image)
+                
+                print("Adding image")
             } else {
                fatalError("Can't create image from file \(imageURL)")
             }
         }
         
         
-        // get names of images in array == whats in array
-        // get last ones index + 1 order by number
+    }
+    
+    
+    func getImageCount() -> Int {
+        var count = 0
+        let fileManager = FileManager.default
+        let documentDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let directoryContents = try! fileManager.contentsOfDirectory(at: documentDirectory, includingPropertiesForKeys: nil)
+        for imageURL in directoryContents where imageURL.pathExtension == "jpg" {
+            count += 1
+        }
+        
+        
+        return count
         
         
     }
     
     
 }
+
+
+var vSpinner : UIView?
+
+
+extension UIViewController {
+    
+    
+    func showSpinner(onView : UIView) {
+        let spinnerView = UIView.init(frame: onView.bounds)
+        spinnerView.backgroundColor = .white
+        let ai = UIActivityIndicatorView.init(style: .large)
+        ai.color = .systemBlue
+        ai.startAnimating()
+        ai.center = spinnerView.center
+        
+        DispatchQueue.main.async {
+            spinnerView.addSubview(ai)
+            onView.addSubview(spinnerView)
+        }
+        
+        vSpinner = spinnerView
+    }
+    
+    func removeSpinner() {
+        DispatchQueue.main.async {
+            vSpinner?.removeFromSuperview()
+            vSpinner = nil
+        }
+        
+        
+        
+        
+    }
+    
+    
+}
+
 
